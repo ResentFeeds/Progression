@@ -2,6 +2,8 @@ package me.Elliott_.Progression;
 
 import com.sk89q.bukkit.util.CommandsManagerRegistration;
 import com.sk89q.minecraft.util.commands.*;
+import me.Elliott_.Progression.lobby.Lobby;
+import me.Elliott_.Progression.lobby.LobbyProtection;
 import me.Elliott_.Progression.menus.Menus;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -67,6 +69,8 @@ public class Progression extends JavaPlugin {
 
     private void registerEvents() {
         getServer().getPluginManager().registerEvents(new Menus(), this);
+        getServer().getPluginManager().registerEvents(new Lobby(), this);
+        getServer().getPluginManager().registerEvents(new LobbyProtection(), this);
     }
 
     public static Progression getPlugin() {
