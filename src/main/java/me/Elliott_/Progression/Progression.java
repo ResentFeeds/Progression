@@ -5,6 +5,9 @@ import com.sk89q.minecraft.util.commands.*;
 import me.Elliott_.Progression.lobby.Lobby;
 import me.Elliott_.Progression.lobby.LobbyProtection;
 import me.Elliott_.Progression.menus.Menus;
+import me.Elliott_.Progression.menus.ProgressionMenu;
+import me.Elliott_.Progression.menus.WorldEdititingMenu;
+import me.Elliott_.Progression.menus.WorldMenu;
 import me.Elliott_.Progression.world.NullChunkGenerator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -76,6 +79,10 @@ public class Progression extends JavaPlugin {
 
     private void registerEvents() {
         getServer().getPluginManager().registerEvents(new Menus(), this);
+        getServer().getPluginManager().registerEvents(new ProgressionMenu(), this);
+        getServer().getPluginManager().registerEvents(new WorldEdititingMenu(), this);
+        getServer().getPluginManager().registerEvents(new WorldMenu(), this);
+
         getServer().getPluginManager().registerEvents(new Lobby(), this);
         getServer().getPluginManager().registerEvents(new LobbyProtection(), this);
     }

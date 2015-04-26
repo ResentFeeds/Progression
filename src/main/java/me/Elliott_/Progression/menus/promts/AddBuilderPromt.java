@@ -1,4 +1,4 @@
-package me.Elliott_.Progression.menus;
+package me.Elliott_.Progression.menus.promts;
 
 import me.Elliott_.Progression.world.WorldConfiguration.WorldConfiguration;
 import org.bukkit.Bukkit;

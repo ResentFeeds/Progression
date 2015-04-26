@@ -1,4 +1,4 @@
-package me.Elliott_.Progression.menus;
+package me.Elliott_.Progression.menus.promts;
 
 import me.Elliott_.Progression.world.GenerateWorld;
 import org.bukkit.ChatColor;
