@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 public class CreateWorldPrompt extends StringPrompt {
 
     public String getPromptText(ConversationContext context) {
-        return "Please enter the name of your world, use /quit to abort";
+        return ChatColor.GREEN + "Please enter the name of your world, type " + ChatColor.AQUA + "quit" + ChatColor.GREEN + " to abort";
     }
 
     @Override

@@ -25,8 +25,6 @@ import java.util.List;
 
 public class Menus implements Listener {
 
-    private ConversationFactory conversationFactory;
-
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
             updateInventory(event.getPlayer());
@@ -38,26 +36,12 @@ public class Menus implements Listener {
         inventory.setItem(1, ItemUtils.createItem(Material.DIAMOND_PICKAXE, 1, ChatColor.GREEN + "Progression Menu"));
     }
 
-    private void progressionMenu(Player player) {
+    public void progressionMenu(Player player) {
         Inventory inventory = Bukkit.createInventory(null, 9, ChatColor.AQUA + "Progression Menu");
-        inventory.setItem(3, ItemUtils.createItem(Material.GRASS, 1, ChatColor.GREEN + "Create World"));
-        inventory.setItem(5, ItemUtils.createItem(Material.COMPASS, 1, ChatColor.RED + "Worlds"));
+        inventory.setItem(2, ItemUtils.createItem(Material.GRASS, 1, ChatColor.GREEN + "Create World"));
+        inventory.setItem(4, ItemUtils.createItem(Material.ANVIL, 1, (short) 0, ChatColor.GOLD + "World Manager", Arrays.asList(ChatColor.YELLOW + "Edit and configure world properties")));
+        inventory.setItem(6, ItemUtils.createItem(Material.COMPASS, 1, ChatColor.RED + "Worlds"));
         player.openInventory(inventory);
-    }
-
-    private void worldsMenu(Player player) {
-        Inventory inventory = Bukkit.createInventory(null, 27, ChatColor.AQUA + "Worlds Menu");
-        List<World> worlds = WorldUtil.getWorlds(player);
-        for (int i = 0; i <= worlds.size(); i++) {
-            if (WorldUtil.isOwner(player, worlds.get(i)))
-                inventory.setItem(i,ItemUtils.createItem(Material.WOOL, 1, (short) 5, ChatColor.AQUA + worlds.get(i).getName(), Arrays.asList(ChatColor.GREEN + "Owner")));
-            else if (WorldUtil.isBuilder(player, worlds.get(i)))
-                inventory.setItem(i,ItemUtils.createItem(Material.WOOL, 1, (short) 4, ChatColor.AQUA + worlds.get(i).getName(), Arrays.asList(ChatColor.YELLOW + "Builder")));
-            else if (WorldUtil.isViewer(player, worlds.get(i)))
-                inventory.setItem(i,ItemUtils.createItem(Material.WOOL, 1, (short) 14, ChatColor.AQUA + worlds.get(i).getName(), Arrays.asList(ChatColor.RED + "Viewer")));
-            else inventory.setItem(i,ItemUtils.createItem(Material.WOOL, 1, (short) 0, ChatColor.AQUA + worlds.get(i).getName(), Arrays.asList(ChatColor.WHITE + "Error!")));
-           player.openInventory(inventory);
-        }
     }
 
     @EventHandler
@@ -67,20 +51,22 @@ public class Menus implements Listener {
             if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR && event.getCurrentItem().hasItemMeta()) {
                 switch (event.getCurrentItem().getType()) {
                     case GRASS:
-                        ConversationFactory factory = new ConversationFactory(Progression.getPlugin()).withModality(true).withFirstPrompt(new CreateWorldPrompt()).withEscapeSequence("/quit").withTimeout(10).thatExcludesNonPlayersWithMessage("Only players can use this!");
+                        ConversationFactory factory = new ConversationFactory(Progression.getPlugin()).withModality(true).withFirstPrompt(new CreateWorldPrompt()).withEscapeSequence("quit").withTimeout(10).thatExcludesNonPlayersWithMessage("Only players can use this!");
                         if (event.getWhoClicked() != null) {
-                            conversationFactory.buildConversation((Conversable) event.getWhoClicked()).begin();
+                            factory.buildConversation((Conversable) event.getWhoClicked()).begin();
                             if (event.getInventory() != null)
                                 event.getWhoClicked().closeInventory();
                         }
                         break;
                     case COMPASS:
                         event.getWhoClicked().closeInventory();
-                        worldsMenu((Player) event.getWhoClicked());
+                        worldsMenu((Player) event.getWhoClicked(), "World Menu");
                         break;
+                    case ANVIL:
+                        worldsMenu((Player) event.getWhoClicked(), "Click a world to edit");
                 }
             } else event.getWhoClicked().closeInventory();
-        } else if (ChatColor.stripColor(event.getInventory().getName()).equalsIgnoreCase("Worlds Menu")) {
+        } else if (ChatColor.stripColor(event.getInventory().getName()).equalsIgnoreCase("World Menu")) {
             event.setCancelled(true);
             if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR && event.getCurrentItem().hasItemMeta()) {
                 if (Progression.getPlugin().getServer().getWorld(ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName())) != null) {
@@ -88,9 +74,45 @@ public class Menus implements Listener {
                     event.getWhoClicked().teleport(Progression.getPlugin().getServer().getWorld(ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName())).getSpawnLocation());
                 }
             }
+        } else if (ChatColor.stripColor(event.getInventory().getName()).equalsIgnoreCase("Click a world to edit")) {
+            event.setCancelled(true);
+            if (Progression.getPlugin().getServer().getWorld(ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName())) != null) {
+                String name = ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName());
+                event.getWhoClicked().closeInventory();
+                worldEditor((Player) event.getWhoClicked(), Bukkit.getWorld(name));
+            }
+        } else if (ChatColor.stripColor(event.getInventory().getName()).startsWith("Editing")) {
+            event.setCancelled(true);
+            if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR && event.getCurrentItem().hasItemMeta()) {
+                if (ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName()).equals("Add owner")) {
+                    event.getWhoClicked().closeInventory();
+                    ConversationFactory factory = new ConversationFactory(Progression.getPlugin()).withModality(true).withFirstPrompt(new AddOwnerPromt()).withEscapeSequence("quit").withTimeout(10).thatExcludesNonPlayersWithMessage("Only players can use this!");
+                    if (event.getWhoClicked() != null) {
+                        factory.buildConversation((Conversable) event.getWhoClicked()).begin();
+                        if (event.getInventory() != null)
+                            event.getWhoClicked().closeInventory();
+                    }
+                } else if (ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName()).equals("Add builder")) {
+                    event.getWhoClicked().closeInventory();
+                    ConversationFactory factory = new ConversationFactory(Progression.getPlugin()).withModality(true).withFirstPrompt(new AddBuilderPromt()).withEscapeSequence("quit").withTimeout(10).thatExcludesNonPlayersWithMessage("Only players can use this!");
+                    if (event.getWhoClicked() != null) {
+                        factory.buildConversation((Conversable) event.getWhoClicked()).begin();
+                        if (event.getInventory() != null)
+                            event.getWhoClicked().closeInventory();
+                    }
+                } else if (ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName()).equals("Add viewer")) {
+                    event.getWhoClicked().closeInventory();
+                    ConversationFactory factory = new ConversationFactory(Progression.getPlugin()).withModality(true).withFirstPrompt(new AddViewerPromt()).withEscapeSequence("quit").withTimeout(10).thatExcludesNonPlayersWithMessage("Only players can use this!");
+                    if (event.getWhoClicked() != null) {
+                        factory.buildConversation((Conversable) event.getWhoClicked()).begin();
+                        if (event.getInventory() != null)
+                            event.getWhoClicked().closeInventory();
+                    }
+                }
+
+            }
         }
     }
-
 
     @EventHandler
     public void onPlayerRightClick(PlayerInteractEvent event) {
@@ -99,6 +121,40 @@ public class Menus implements Listener {
                 progressionMenu(event.getPlayer());
             }
         }
+    }
+
+    private void worldEditor(Player player, World world) {
+        Inventory inventory = Bukkit.createInventory(null, 27, ChatColor.GOLD + "Editing " + ChatColor.GREEN + world.getName());
+        inventory.setItem(0, ItemUtils.createItem(Material.LEASH, 1, ChatColor.GOLD + "Add owner"));
+        inventory.setItem(1, ItemUtils.createItem(Material.DIRT, 1, ChatColor.GOLD + "Add builder"));
+        inventory.setItem(2, ItemUtils.createItem(Material.GLASS, 1, ChatColor.GOLD + "Add viewer"));
+        player.openInventory(inventory);
+    }
+
+
+    private void worldsMenu(Player player, String name) {
+        if (WorldUtil.getWorlds(player.getUniqueId().toString()).size() > 0) {
+            Inventory inventory = Bukkit.createInventory(null, 27, ChatColor.AQUA + name);
+            List<World> worlds = WorldUtil.getWorlds(player.getUniqueId().toString());
+            int slot = 0;
+            for (int i = 0; worlds.size() > i; i++) {
+                if (worlds.get(i) != null) {
+                    if (WorldUtil.isOwner(player, worlds.get(i))) {
+                        inventory.setItem(slot, ItemUtils.createItem(Material.WOOL, 1, (short) 5, ChatColor.AQUA + worlds.get(i).getName(), Arrays.asList(ChatColor.GREEN + "Owner")));
+                        slot++;
+                    }
+                    else if (WorldUtil.isBuilder(player, worlds.get(i))) {
+                        inventory.setItem(slot, ItemUtils.createItem(Material.WOOL, 1, (short) 4, ChatColor.AQUA + worlds.get(i).getName(), Arrays.asList(ChatColor.YELLOW + "Builder")));
+                        slot++;
+                    }
+                    else if (WorldUtil.isViewer(player, worlds.get(i))) {
+                        inventory.setItem(slot, ItemUtils.createItem(Material.WOOL, 1, (short) 14, ChatColor.AQUA + worlds.get(i).getName(), Arrays.asList(ChatColor.RED + "Viewer")));
+                        slot++;
+                    }
+                }
+            }
+            player.openInventory(inventory);
+        } else player.sendMessage(ChatColor.RED + "No worlds that you own were found");
     }
 
 }

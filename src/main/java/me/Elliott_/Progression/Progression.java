@@ -5,11 +5,16 @@ import com.sk89q.minecraft.util.commands.*;
 import me.Elliott_.Progression.lobby.Lobby;
 import me.Elliott_.Progression.lobby.LobbyProtection;
 import me.Elliott_.Progression.menus.Menus;
+import me.Elliott_.Progression.world.NullChunkGenerator;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.WorldCreator;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
 
 public class Progression extends JavaPlugin {
 
@@ -24,6 +29,8 @@ public class Progression extends JavaPlugin {
         registerEvents();
         getConfig().options().copyDefaults(true);
         saveConfig();
+        instance = this;
+        generateWorlds();
     }
 
     @Override
@@ -75,6 +82,13 @@ public class Progression extends JavaPlugin {
 
     public static Progression getPlugin() {
         return instance;
+    }
+
+    private void generateWorlds() {
+        for (String name : getConfig().getConfigurationSection("worlds").getKeys(false)) {
+            WorldCreator wc = new WorldCreator(name).generator(new NullChunkGenerator());
+            getServer().createWorld(wc);
+        }
     }
 
 }

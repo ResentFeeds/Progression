@@ -15,18 +15,18 @@ public class Lobby implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        event.getPlayer().sendMessage(ChatColor.GREEN + "Teleporting you to the lobby...");
-        if (getLobby() != null)
+        if (getLobby() != null) {
+            event.getPlayer().sendMessage(ChatColor.GREEN + "Teleporting you to the lobby...");
             event.getPlayer().teleport(getLobby().getSpawnLocation());
-        updateInventory(event.getPlayer());
-        event.getPlayer().setGameMode(GameMode.CREATIVE);
+            updateInventory(event.getPlayer());
+            event.getPlayer().setGameMode(GameMode.CREATIVE);
+        }
     }
 
     public static World getLobby() {
-        if (Progression.getPlugin().getConfig().getConfigurationSection("worlds").getKeys(false) != null) {
+        if (Progression.getPlugin().getConfig().getConfigurationSection("worlds") != null) {
             Set<String> worlds = Progression.getPlugin().getConfig().getConfigurationSection("worlds").getKeys(false);
             for (String world : worlds) {
-                Bukkit.broadcastMessage(world);
                 if (Progression.getPlugin().getConfig().get("worlds." + world + ".lobby") != null) {
                     if (Progression.getPlugin().getConfig().getString("worlds." + world + ".lobby").equals("true"))
                         return Bukkit.getWorld(world);
